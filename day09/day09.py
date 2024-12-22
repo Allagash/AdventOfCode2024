@@ -93,11 +93,14 @@ def part2Count(disk):
             pos += 1
     return result
 
-def part2(data): # 6239712239037 is too low
+def part2(data):
     """Solve part 2."""
     disk, idx = expand2(data)
+    print("max index: ", idx)
     while idx > 0:
         idx -= 1
+        #if idx // 100 == idx / 100:
+        #    print("processing index: ", idx)
         # make sure only move disk fragments to left, never right
         leftIdx = 0
         rightIdx = len(disk) -1
@@ -118,12 +121,16 @@ def part2(data): # 6239712239037 is too low
             leftIdx += 1
         if leftIdx >= rightIdx:
             continue
-        # insert to left of leftIdx
-        fragment_left = (fragment_left[0], fragment_left[1] - fragment_size)
+        # fragment_left is what's left of the open space on disk
+        fragment_left = (-1, fragment_left[1] - fragment_size)
         # need to combine the empty fragments
         fragment_right_new = (-1, fragment_right[1])
         disk.pop(rightIdx)
         disk.insert(rightIdx, fragment_right_new)
+        disk.pop(leftIdx)
+        if fragment_left[1] != 0: # don't insert if size 0
+            disk.insert(leftIdx, fragment_left)
+        # combine adjacent empty space on disk
         while rightIdx > 0 and disk[rightIdx -1][0] == -1:
             rightIdx -= 1
         while (rightIdx + 1) < len(disk) and disk[rightIdx][0] == -1 and disk[rightIdx + 1][0] == -1:
@@ -131,11 +138,21 @@ def part2(data): # 6239712239037 is too low
             disk.pop(rightIdx + 1)
             disk.pop(rightIdx)
             disk.insert(rightIdx, fragment_right_new)
-        disk.pop(leftIdx)
-        if fragment_left[1] != 0: # don't insert if size 0
-            disk.insert(leftIdx, fragment_left)
         disk.insert(leftIdx, fragment_right)
+
+        # check for defrag errors
+        #checkForErrors(disk)
+
     return part2Count(disk)
+
+
+def checkForErrors(disk):
+    check_idx = 0
+    while (check_idx + 1) < len(disk):
+        if disk[check_idx][0] == disk[check_idx + 1][0]:
+            print("Error at ", check_idx)
+        check_idx += 1
+
 
 def solve(puzzle_input):
     """Solve the puzzle for the given input."""
